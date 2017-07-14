@@ -11,8 +11,11 @@ GEN_CMDS__FLAG :=
 
 ORDERED_OBJS += \
 "./GPSData.obj" \
+"./ST7735.obj" \
 "./main.obj" \
 "./tm4c123gh6pm_startup_ccs.obj" \
+"./fatfs/ff.obj" \
+"./fatfs/mmc-dk-tm4c123g.obj" \
 "../tm4c123gh6pm.cmd" \
 $(GEN_CMDS__FLAG) \
 -llibc.a \
@@ -26,7 +29,9 @@ RMDIR := RMDIR /S/Q
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include subdir_vars.mk
+-include fatfs/subdir_vars.mk
 -include subdir_rules.mk
+-include fatfs/subdir_rules.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -143,7 +148,7 @@ all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 GPS.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: ARM Linker'
-	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.3.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O3 --define=ccs="ccs" --define=TARGET_IS_TM4C123_RB1 --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi -z -m"GPS.map" --heap_size=0 --stack_size=512 -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.3.LTS/lib" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.3.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="GPS_linkInfo.xml" --rom_model -o "GPS.out" $(ORDERED_OBJS)
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.3.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O3 --define=ccs="ccs" --define=TARGET_IS_TM4C123_RB1 --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi -z -m"GPS.map" --heap_size=0 --stack_size=512 -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.3.LTS/lib" -i"C:/ti/TivaWare_C_Series-2.1.3.156/third_party/fatfs/src" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.3.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="GPS_linkInfo.xml" --rom_model -o "GPS.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -156,8 +161,8 @@ GPS.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "GPSData.obj" "main.obj" "tm4c123gh6pm_startup_ccs.obj" 
-	-$(RM) "GPSData.d" "main.d" "tm4c123gh6pm_startup_ccs.d" 
+	-$(RM) "GPSData.obj" "ST7735.obj" "main.obj" "tm4c123gh6pm_startup_ccs.obj" "fatfs\ff.obj" "fatfs\mmc-dk-tm4c123g.obj" 
+	-$(RM) "GPSData.d" "ST7735.d" "main.d" "tm4c123gh6pm_startup_ccs.d" "fatfs\ff.d" "fatfs\mmc-dk-tm4c123g.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

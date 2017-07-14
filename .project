@@ -24,4 +24,10 @@
 		<nature>org.eclipse.cdt.core.ccnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<variableList>
+		<variable>
+			<name>TI_THIRD_PARTY</name>
+			<value>file:/C:/ti/TivaWare_C_Series-2.1.3.156/third_party/fatfs/src</value>
+		</variable>
+	</variableList>
 </projectDescription>
