@@ -45,8 +45,8 @@ void writeCmd(uint8_t cmd)
 {
     ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_4, 0);
     ROM_SSIDataPut(SSI0_BASE, cmd);
-    SSIDataGet(SSI0_BASE, 0);
-    //while(ROM_SSIBusy(SSI0_BASE));
+    ROM_SSIDataGet(SSI0_BASE, 0);
+    while(ROM_SSIBusy(SSI0_BASE));
     ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_4, GPIO_PIN_4);
 }
 
@@ -81,8 +81,9 @@ void write565(uint16_t data, uint32_t count)
         SSIDataGet(SSI0_BASE, 0);
         //while(ROM_SSIBusy(SSI0_BASE));
         ROM_SSIDataPut(SSI0_BASE, (data & 0xFF));
+        while(ROM_SSIBusy(SSI0_BASE));
         SSIDataGet(SSI0_BASE, 0);
-        //while(ROM_SSIBusy(SSI0_BASE));
+        while(ROM_SSIBusy(SSI0_BASE));
     }
 }
 
@@ -184,6 +185,7 @@ void LCD_putCh(char ch, uint8_t x, uint8_t y, uint16_t color, uint16_t bgcolor)
         }
         mask <<= 1;
     }
+    while(ROM_SSIBusy(SSI0_BASE));
 }
 
 void drawString(const char *str, uint8_t x, uint8_t y, uint16_t color)
@@ -292,6 +294,7 @@ void setOrientation(uint8_t degrees)
     }
     writeCmd(MADCTL);
     ROM_SSIDataPut(SSI0_BASE, arg);
+    while(ROM_SSIBusy(SSI0_BASE));
     ROM_SSIDataGet(SSI0_BASE, 0);
     ROM_GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_3, GPIO_PIN_3);
 }

@@ -19,8 +19,8 @@
 // 1.8" LCD Constants
 #define LCDWIDTH		128
 #define LCDHEIGHT		160
-#define LCDMAXWIDTH		LCDWIDTH-1
-#define LCDMAXHEIGHT		LCDHEIGHT-1
+#define LCDMAXWIDTH		(LCDWIDTH-1)
+#define LCDMAXHEIGHT	(LCDHEIGHT-1)
 
 // Color constants
 #define BLACK		0x0000

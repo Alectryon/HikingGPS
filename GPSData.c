@@ -2,23 +2,23 @@
 #include <stdlib.h>
 #include <string.h>
 
-static char *GPS_token;
-static char *GPS_deg;
+int parseGPSData(struct GPSData *gpsdata, char *gps) {
 
-int parseGPSData(struct GPSData *gpsdata, char *GPSNMEA) {
-    GPS_token = strtok(GPSNMEA, ",");
+    char *GPS_token = strtok(gps, ",");
     if (!strcmp(GPS_token, "$GPGGA")) {
         // UTC of position (time)
         GPS_token = strtok(NULL, ".");
         gpsdata->time = atoi(GPS_token);
         GPS_token = strtok(NULL, ",");
 
+        if (gpsdata->time == 0) return 0;
+
         // Latitude of position
         GPS_token = strtok(NULL, ",");
         //gpsdata.latStr = GPS_token;
         // First take the integer value divide 100
         gpsdata->latitude = atoi(GPS_token)/100;
-        GPS_deg = strrchr(GPS_token, '.');
+        char *GPS_deg = strrchr(GPS_token, '.');
         GPS_deg -= 2;
         gpsdata->latitude += atof(GPS_deg)/60;
 

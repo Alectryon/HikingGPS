@@ -57,13 +57,15 @@
 // asserts the CS pin to the card
 void SELECT_SD (void)
 {
-    ROM_GPIOPinWrite(SDC_GPIO_PORT_BASE, SDC_SSI_FSS, 0);
+    GPIOPinWrite(SDC_GPIO_PORT_BASE, SDC_SSI_FSS, 0);
+    ROM_SysCtlDelay(50);
 }
 
 // de-asserts the CS pin to the card
 void DESELECT_SD (void)
 {
-    ROM_GPIOPinWrite(SDC_GPIO_PORT_BASE, SDC_SSI_FSS, SDC_SSI_FSS);
+    GPIOPinWrite(SDC_GPIO_PORT_BASE, SDC_SSI_FSS, SDC_SSI_FSS);
+    ROM_SysCtlDelay(50);
 }
 
 /*--------------------------------------------------------------------------
@@ -93,9 +95,9 @@ void xmit_spi(BYTE dat)
 {
     uint32_t ui32RcvDat;
 
-    ROM_SSIDataPut(SDC_SSI_BASE, dat); /* Write the data to the tx fifo */
+    SSIDataPut(SDC_SSI_BASE, dat); /* Write the data to the tx fifo */
 
-    ROM_SSIDataGet(SDC_SSI_BASE, &ui32RcvDat); /* flush data read during the write */
+    SSIDataGet(SDC_SSI_BASE, &ui32RcvDat); /* flush data read during the write */
 }
 
 
@@ -108,9 +110,9 @@ BYTE rcvr_spi (void)
 {
     uint32_t ui32RcvDat;
 
-    ROM_SSIDataPut(SDC_SSI_BASE, 0xFF); /* write dummy data */
+    SSIDataPut(SDC_SSI_BASE, 0xFF); /* write dummy data */
 
-    ROM_SSIDataGet(SDC_SSI_BASE, &ui32RcvDat); /* read data frm rx fifo */
+    SSIDataGet(SDC_SSI_BASE, &ui32RcvDat); /* read data frm rx fifo */
 
     return (BYTE)ui32RcvDat;
 }
@@ -213,6 +215,7 @@ void power_on (void)
     ROM_SSIConfigSetExpClk(SDC_SSI_BASE, ROM_SysCtlClockGet(),
                            SSI_FRF_MOTO_MODE_0, SSI_MODE_MASTER, 400000, 8);
     ROM_SSIEnable(SDC_SSI_BASE);
+    SELECT_SD();
 
     /* Set DI and CS high and apply more than 74 pulses to SCLK for the card */
     /* to be able to accept a native command. */
@@ -236,10 +239,6 @@ void set_max_speed(void)
     {
         i = 12500000;
     }
-    /*if(i > 12500000)
-    {
-        i = 12500000;
-    }*/
 
     /* Configure the SSI0 port to run at 12.5MHz */
     ROM_SSIConfigSetExpClk(SDC_SSI_BASE, ROM_SysCtlClockGet(),
@@ -268,7 +267,7 @@ int chk_power(void)        /* Socket power state: 0=off, 1=on */
 /*-----------------------------------------------------------------------*/
 
 static
-BOOL rcvr_datablock (
+UINT rcvr_datablock (
     BYTE *buff,            /* Data buffer to store received data */
     UINT btr            /* Byte count (must be even number) */
 )
@@ -280,7 +279,7 @@ BOOL rcvr_datablock (
     do {                            /* Wait for data packet in timeout of 100ms */
         token = rcvr_spi();
     } while ((token == 0xFF) && Timer1);
-    if(token != 0xFE) return FALSE;    /* If not valid data token, retutn with error */
+    if(token != 0xFE) return 0;    /* If not valid data token, retutn with error */
 
     do {                            /* Receive the data block into buffer */
         rcvr_spi_m(buff++);
@@ -289,7 +288,7 @@ BOOL rcvr_datablock (
     rcvr_spi();                        /* Discard CRC */
     rcvr_spi();
 
-    return TRUE;                    /* Return with success */
+    return 1;                    /* Return with success */
 }
 
 
@@ -300,7 +299,7 @@ BOOL rcvr_datablock (
 
 #if _READONLY == 0
 static
-BOOL xmit_datablock (
+UINT xmit_datablock (
     const BYTE *buff,    /* 512 byte data block to be transmitted */
     BYTE token            /* Data/Stop token */
 )
@@ -308,7 +307,7 @@ BOOL xmit_datablock (
     BYTE resp, wc;
 
 
-    if (wait_ready() != 0xFF) return FALSE;
+    if (wait_ready() != 0xFF) return 0;
 
     xmit_spi(token);                    /* Xmit data token */
     if (token != 0xFD) {    /* Is data token */
@@ -321,10 +320,10 @@ BOOL xmit_datablock (
         xmit_spi(0xFF);
         resp = rcvr_spi();                /* Reveive data response */
         if ((resp & 0x1F) != 0x05)        /* If not accepted, return with error */
-            return FALSE;
+            return 0;
     }
 
-    return TRUE;
+    return 1;
 }
 #endif /* _READONLY */
 
@@ -502,7 +501,7 @@ DRESULT disk_read (
     BYTE drv,            /* Physical drive nmuber (0) */
     BYTE *buff,            /* Pointer to the data buffer to store read data */
     DWORD sector,        /* Start sector number (LBA) */
-    BYTE count            /* Sector count (1..255) */
+    UINT count            /* Sector count (1..255) */
 )
 {
     if (drv || !count) return RES_PARERR;
@@ -544,7 +543,7 @@ DRESULT disk_write (
     BYTE drv,            /* Physical drive nmuber (0) */
     const BYTE *buff,    /* Pointer to the data to be written */
     DWORD sector,        /* Start sector number (LBA) */
-    BYTE count            /* Sector count (1..255) */
+    UINT count            /* Sector count (1..255) */
 )
 {
     if (drv || !count) return RES_PARERR;
